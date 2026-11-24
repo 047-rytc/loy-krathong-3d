@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>งานวัดริมแม่น้ำ เทศกาลลอยกระทง 3D | Loy Krathong Festival</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Sarabun:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./src/style.css" />
+</head>
+<body>
+  <!-- 3D Canvas Container -->
+  <div id="canvas-container"></div>
+
+  <!-- Loading Screen -->
+  <div id="loading-screen" class="loading-screen">
+    <div class="loader-content">
+      <div class="krathong-icon-spin">🪷</div>
+      <h1 class="festival-title">งานวัดริมแม่น้ำ เทศกาลลอยกระทง</h1>
+      <p class="festival-subtitle">กำลังจัดเตรียมบรรยากาศคืนวันเพ็ญ...</p>
+      <div class="progress-bar-container">
+        <div id="progress-bar" class="progress-bar"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main UI Header / Brand -->
+  <header class="app-header" id="app-header">
+    <div class="header-badge">
+      <span class="moon-icon">🌕</span>
+      <div>
+        <h1 class="site-title">สุขสันต์วันลอยกระทง</h1>
+        <p class="site-desc">คืนเพ็ญเดือนสิบสอง • วัดริมสายน้ำเจ้าพระยา</p>
+      </div>
+    </div>
+
+    <!-- Dual Audio Controls: Traditional Music & Carnival Ambience -->
+    <div class="header-actions">
+      <button id="btn-music" class="action-pill" title="เปิด/ปิด เสียงดนตรีไทยบรรเลง">
+        <span class="icon" id="music-icon">🎵</span>
+        <span id="music-text">ดนตรีไทย</span>
+      </button>
+      <button id="btn-ambience" class="action-pill active-pill" title="เปิด/ปิด เสียงบรรยากาศงานวัดและสายน้ำ">
+        <span class="icon" id="ambience-icon">🌊</span>
+        <span id="ambience-text">บรรยากาศงานวัด</span>
+      </button>
+      <button id="btn-info" class="action-pill icon-only" title="วิธีควบคุมและลูกเล่น">
+        ℹ️
+      </button>
+    </div>
+  </header>
+
+  <!-- Sky Fireworks Click Tip -->
+  <div class="sky-firework-tip" id="sky-firework-tip">
+    <span class="sparkle-icon">✨</span>
+    <span>คลิกตรงไหนก็ได้บนท้องฟ้าเพื่อ <strong>จุดพลุหลากสีสัน</strong></span>
+  </div>
+
+  <!-- Camera Presets Bar -->
+  <div class="camera-toolbar" id="camera-toolbar">
+    <span class="toolbar-label">มุมกล้อง:</span>
+    <button class="cam-btn active" data-cam="overview">🏛️ มุมมองหลัก</button>
+    <button class="cam-btn" data-cam="pier">🪵 ท่าน้ำวัด</button>
+    <button class="cam-btn" data-cam="fair">🎡 ชิงช้าสวรรค์</button>
+    <button class="cam-btn" id="btn-follow-cam" data-cam="krathong">🪷 ตามติดกระทงของฉัน</button>
+  </div>
+
+  <!-- Floating Stats -->
+  <div class="floating-stats" id="floating-stats">
+    <div class="stat-item">
+      <span class="stat-num" id="stat-krathongs">0</span>
+      <span class="stat-label">กระทงในสายน้ำ</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="stat-lanterns">0</span>
+      <span class="stat-label">โคมลอยบนฟ้า</span>
+    </div>
+  </div>
+
+  <!-- Floating Follow-Krathong Return Bar -->
+  <div id="follow-return-bar" class="follow-return-bar hidden">
+    <div class="follow-info">
+      <span class="pulse-dot"></span>
+      <span>กำลังตามติดกระทงของคุณ...</span>
+    </div>
+    <button id="btn-return-overview" class="btn-sm-pill glow-gold">
+      🏛️ กลับมุมมองหลัก
+    </button>
+  </div>
+
+  <!-- Main Action Floating Buttons -->
+  <div class="bottom-actions" id="bottom-actions">
+    <button id="btn-open-krathong" class="btn-primary glow-gold">
+      <span class="btn-icon">🪷</span>
+      <span class="btn-text">
+        <strong>ประดิษฐ์กระทงของคุณ</strong>
+        <small>เลือกฐาน ดอกไม้ เหรียญ & ของแต่งแรร์</small>
+      </span>
+    </button>
+    <button id="btn-play-balloon" class="btn-carnival glow-red">
+      <span class="btn-icon">🎯</span>
+      <span class="btn-text">
+        <strong>เล่นซุ้มปาโป่ง</strong>
+        <small>ชิงรางวัลบัวทองคำ</small>
+      </span>
+    </button>
+    <button id="btn-play-dunk" class="btn-carnival glow-cyan">
+      <span class="btn-icon">🌊</span>
+      <span class="btn-text">
+        <strong>เล่นสาวน้อยตกน้ำ</strong>
+        <small>ชิงมงกุฎ & ออร่าสวรรค์</small>
+      </span>
+    </button>
+    <button id="btn-release-lantern" class="btn-secondary glow-orange">
+      <span class="btn-icon">🏮</span>
+      <span class="btn-text">
+        <strong>ปล่อยโคมลอย</strong>
+        <small>ขอพรขึ้นสู่ฟ้า</small>
+      </span>
+    </button>
+    <button id="btn-launch-firework" class="btn-secondary glow-magenta">
+      <span class="btn-icon">🎆</span>
+      <span class="btn-text">
+        <strong>จุดพลุฉลอง</strong>
+        <small>ประกายไฟระยับ</small>
+      </span>
+    </button>
+  </div>
+
+  <!-- Interactive Krathong Wish Tooltip / Card (On Hover / Click) -->
+  <div id="wish-card" class="wish-card hidden">
+    <div class="wish-card-header">
+      <span class="wish-card-icon" id="wc-icon">🪷</span>
+      <div class="wish-card-meta">
+        <strong id="wc-author">คุณสมชาย ใจดี</strong>
+        <small id="wc-type">กระทงใบตอง • ดอกดาวเรือง</small>
+      </div>
+      <button id="btn-close-wish" class="wc-close">&times;</button>
+    </div>
+    <div class="wish-card-body">
+      <p id="wc-text">"ขอขมาพระแม่คงคา ขอให้ครอบครัวมีความสุข สุขภาพแข็งแรงตลอดปี"</p>
+    </div>
+  </div>
+
+  <!-- ================= MINI-GAME 1: BALLOON DART HUD ================= -->
+  <div id="hud-balloon-game" class="minigame-hud hidden">
+    <div class="hud-top-bar">
+      <div class="game-badge">
+        <span class="game-badge-icon">🎯</span>
+        <div>
+          <h3>ซุ้มปาโป่งงานวัด</h3>
+          <p>คลิกเพื่อเล็งและปาลูกดอกให้โดนลูกโป่ง</p>
+        </div>
+      </div>
+
+      <div class="game-stats-pill">
+        <div class="hud-stat">
+          <span class="label">ลูกดอกเหลือ:</span>
+          <span class="value" id="bg-darts-count">5</span>
+          <span class="unit">ดอก</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="hud-stat">
+          <span class="label">คะแนน:</span>
+          <span class="value score-glow" id="bg-score-count">0</span>
+          <span class="unit">ลูก</span>
+        </div>
+      </div>
+
+      <div class="game-actions">
+        <button id="btn-restart-balloon" class="btn-sm-action">🔄 เริ่มใหม่</button>
+        <button id="btn-exit-balloon" class="btn-exit-game">🪵 กลับสู่ริมน้ำ</button>
+      </div>
+    </div>
+    <div class="aim-crosshair" id="aim-crosshair">🎯</div>
+  </div>
+
+  <!-- Balloon GameOver Popup -->
+  <div id="balloon-gameover" class="minigame-result-modal hidden">
+    <div class="result-box">
+      <div class="result-icon">🎯</div>
+      <h2 id="bgo-title">สรุปผลการเล่นซุ้มปาโป่ง</h2>
+      <p class="result-score" id="bgo-score">คะแนน: 0 / 5</p>
+      <div class="result-reward-card" id="bgo-reward">
+        ✨ <strong>ของรางวัล:</strong> ดอกบัวทองคำ
+      </div>
+      <div class="result-buttons">
+        <button id="btn-playagain-balloon" class="btn-primary glow-gold">เล่นอีกครั้ง</button>
+        <button id="btn-finish-balloon" class="btn-secondary">กลับสู่ริมน้ำ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= MINI-GAME 2: DUNK TANK HUD ================= -->
+  <div id="hud-dunk-game" class="minigame-hud hidden">
+    <div class="hud-top-bar">
+      <div class="game-badge">
+        <span class="game-badge-icon">🌊</span>
+        <div>
+          <h3>ซุ้มสาวน้อยตกน้ำ</h3>
+          <p>คลิกเพื่อปาลูกบอลให้เข้าเป้าสีแดงตรงข้างถังน้ำ</p>
+        </div>
+      </div>
+
+      <div class="game-stats-pill">
+        <div class="hud-stat">
+          <span class="label">ลูกบอลเหลือ:</span>
+          <span class="value" id="dt-balls-count">3</span>
+          <span class="unit">ลูก</span>
+        </div>
+      </div>
+
+      <div class="game-actions">
+        <button id="btn-restart-dunk" class="btn-sm-action">🔄 ตั้งแท่นใหม่</button>
+        <button id="btn-exit-dunk" class="btn-exit-game">🪵 กลับสู่ริมน้ำ</button>
+      </div>
+    </div>
+    <div class="aim-crosshair" id="aim-crosshair-dunk">⚾</div>
+  </div>
+
+  <!-- Dunk Tank GameOver Popup -->
+  <div id="dunk-gameover" class="minigame-result-modal hidden">
+    <div class="result-box">
+      <div class="result-icon">🌊</div>
+      <h2 id="dgo-title">ผลการปาสาวน้อยตกน้ำ</h2>
+      <p class="result-score" id="dgo-score">ตกน้ำสำเร็จ!</p>
+      <div class="result-reward-card" id="dgo-reward">
+        ✨ <strong>ปลดล็อกของแต่งกระทงแรร์:</strong> มงกุฎจิ๋วมงคล & ออร่าประกายแสงสวรรค์!
+      </div>
+      <div class="result-buttons">
+        <button id="btn-playagain-dunk" class="btn-primary glow-cyan">เล่นอีกครั้ง</button>
+        <button id="btn-finish-dunk" class="btn-secondary">กลับสู่ริมน้ำ</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= KRATHONG CUSTOMIZER MODAL ================= -->
+  <div id="modal-krathong" class="modal-backdrop hidden">
+    <div class="modal-box modal-customizer">
+      <button id="btn-close-modal" class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <span class="modal-icon">🪷</span>
+        <div>
+          <h2>ออกแบบและประดิษฐ์กระทง</h2>
+          <p class="modal-subtext">ประดิษฐ์กระทงมงคลตามสไตล์ของคุณเพื่อลอยสู่แม่น้ำเจ้าพระยา</p>
+        </div>
+      </div>
+
+      <div class="modal-body customizer-body">
+        <!-- 1. Input Name & Wish -->
+        <div class="form-row">
+          <div class="form-group flex-1">
+            <label for="input-author">ชื่อของคุณ:</label>
+            <input type="text" id="input-author" placeholder="เช่น น้องฟ้าใส, ครอบครัวสุขใจ" value="คุณผู้มีจิตศรัทธา" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="input-wish">คำอธิษฐาน / ข้อความขอขมาพระแม่คงคา:</label>
+          <textarea id="input-wish" rows="2" placeholder="ขอขมาพระแม่คงคา ขอให้ชีวิตมีแต่ความเจริญรุ่งเรือง ร่มเย็นเป็นสุข..."></textarea>
+        </div>
+
+        <!-- 2. Select Base Type -->
+        <div class="form-group">
+          <label class="section-label">1. เลือกฐานกระทง:</label>
+          <div class="custom-selector grid-3">
+            <button class="opt-card selected" data-category="base" data-value="banana">
+              <span class="opt-emoji">🍃</span>
+              <span class="opt-title">ใบตอง</span>
+              <span class="opt-desc">กลีบผกาดั้งเดิม</span>
+            </button>
+            <button class="opt-card" data-category="base" data-value="bread">
+              <span class="opt-emoji">🍞</span>
+              <span class="opt-title">ขนมปัง</span>
+              <span class="opt-desc">รักษ์โลก ย่อยสลายได้</span>
+            </button>
+            <button class="opt-card" data-category="base" data-value="ice">
+              <span class="opt-emoji">🧊</span>
+              <span class="opt-title">น้ำแข็งเรืองแสง</span>
+              <span class="opt-desc">คริสตัลใสเย็นฉ่ำ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 3. Select Flower Type -->
+        <div class="form-group">
+          <label class="section-label">2. เลือกสีดอกไม้:</label>
+          <div class="custom-selector grid-3">
+            <button class="opt-card selected" data-category="flower" data-value="marigold">
+              <span class="opt-emoji">🌼</span>
+              <span class="opt-title">ดาวเรือง (สีเหลือง)</span>
+              <span class="opt-desc">รุ่งเรือง มั่งคั่ง</span>
+            </button>
+            <button class="opt-card" data-category="flower" data-value="lotus">
+              <span class="opt-emoji">🪷</span>
+              <span class="opt-title">ดอกบัว (สีชมพู)</span>
+              <span class="opt-desc">บริสุทธิ์ สงบร่มเย็น</span>
+            </button>
+            <button class="opt-card" data-category="flower" data-value="orchid">
+              <span class="opt-emoji">🌸</span>
+              <span class="opt-title">กล้วยไม้ (สีม่วง)</span>
+              <span class="opt-desc">สูงส่ง สิริมงคล</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4. RARE UNLOCKED REWARDS (ของแต่งกระทงระดับแรร์) -->
+        <div class="form-group">
+          <div class="rare-section-header">
+            <label class="section-label gold-gradient-text">✨ 3. ของแต่งกระทงระดับแรร์ (ปลดล็อกได้จากมินิเกมงานวัด):</label>
+          </div>
+          <div class="custom-selector grid-3">
+            <!-- Rare 1: Golden Lotus -->
+            <button class="opt-card rare-card locked" id="rare-card-goldenLotus" data-category="flower" data-value="goldenLotus">
+              <span class="opt-emoji">🏵️</span>
+              <span class="opt-title">ดอกบัวทองคำ</span>
+              <span class="rare-badge" id="badge-goldenLotus">🔒 ชนะซุ้มปาโป่ง</span>
+            </button>
+
+            <!-- Rare 2: Mini Golden Crown -->
+            <button class="opt-card rare-card locked" id="rare-card-crown" data-category="rareDecor" data-value="crown">
+              <span class="opt-emoji">👑</span>
+              <span class="opt-title">มงกุฎจิ๋วมงคล</span>
+              <span class="rare-badge" id="badge-crown">🔒 ชนะสาวน้อยตกน้ำ</span>
+            </button>
+
+            <!-- Rare 3: Celestial Sparkle Aura -->
+            <button class="opt-card rare-card locked" id="rare-card-sparkleAura" data-category="rareDecor" data-value="sparkleAura">
+              <span class="opt-emoji">✨</span>
+              <span class="opt-title">ออร่าประกายสวรรค์</span>
+              <span class="rare-badge" id="badge-sparkleAura">🔒 ชนะสาวน้อยตกน้ำ</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 5. Decorations (Incense, Coins, Candle Color) -->
+        <div class="form-group">
+          <label class="section-label">4. ของตกแต่งและเครื่องสักการะ:</label>
+          <div class="decorations-panel">
+            <label class="checkbox-pill">
+              <input type="checkbox" id="chk-incense" checked />
+              <span class="cb-label">🪔 ธูป 3 ดอก (พร้อมควันธูป)</span>
+            </label>
+            <label class="checkbox-pill">
+              <input type="checkbox" id="chk-coins" checked />
+              <span class="cb-label">🪙 เหรียญมงคล (ทอง & เงิน)</span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 6. Candle Flame Color -->
+        <div class="form-group">
+          <label class="section-label">5. สีเปลวเทียนสว่างไสว:</label>
+          <div class="candle-color-selector">
+            <button class="color-dot selected" data-color="#ff9900" style="background: #ff9900;" title="สีส้มทองอบอุ่น"></button>
+            <button class="color-dot" data-color="#ff3366" style="background: #ff3366;" title="สีชมพูเสน่หา"></button>
+            <button class="color-dot" data-color="#ffdd00" style="background: #ffdd00;" title="สีเหลืองสว่างสดใส"></button>
+            <button class="color-dot" data-color="#33ccff" style="background: #33ccff;" title="สีฟ้าสุขสงบ"></button>
+            <button class="color-dot" data-color="#a855f7" style="background: #a855f7;" title="สีม่วงสิริมงคล"></button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button id="btn-cancel-krathong" class="btn-flat">ยกเลิก</button>
+        <button id="btn-confirm-krathong" class="btn-primary glow-gold">
+          จุดเทียน & ลอยกระทงสู่สายน้ำ 🌊
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info Modal -->
+  <div id="modal-info" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <button id="btn-close-info" class="modal-close-btn">&times;</button>
+      <div class="modal-header">
+        <span class="modal-icon">ℹ️</span>
+        <h2>คู่มือการร่วมงานและมินิเกมงานวัด</h2>
+      </div>
+      <div class="modal-body text-content">
+        <p><strong>🎪 ซุ้มมินิเกมงานวัดริมน้ำ:</strong></p>
+        <ul>
+          <li>🎯 <strong>ซุ้มปาโป่ง:</strong> มีลูกดอก 5 ดอก เล็งแล้วคลิกปาตามวิถีโค้ง เมื่อปาโดน 3 ลูกขึ้นไปจะปลดล็อก <strong>ดอกบัวทองคำ</strong></li>
+          <li>🌊 <strong>ซุ้มสาวน้อยตกน้ำ:</strong> มีลูกบอล 3 ลูก เล็งปาเข้าเป้าสีแดง เมื่อโดนเป้า แท่นจะพับทำให้ตัวละครตกน้ำตูมสนั่น และปลดล็อก <strong>มงกุฎจิ๋วมงคล & ออร่าประกายแสงสวรรค์</strong></li>
+          <li>🪵 <strong>ปุ่มกลับสู่ริมน้ำ:</strong> ในระหว่างเล่นมินิเกม สามารถกดปุ่มนี้เพื่อซูมกล้องกลับสู่ริมแม่น้ำได้ตลอดเวลา</li>
+        </ul>
+        <p><strong>🎆 ลูกเล่นการโต้ตอบอื่นๆ:</strong></p>
+        <ul>
+          <li>✨ <strong>จุดพลุบนฟ้า:</strong> คลิกตรงไหนก็ได้บนท้องฟ้าเพื่อยิงพลุขึ้นไประเบิดเป็นประกายไฟสวยงามพร้อมเสียงพลุสมจริง</li>
+          <li>🪷 <strong>อ่านคำอธิษฐานในน้ำ:</strong> เลื่อนเมาส์ไปชี้หรือคลิกที่กระทงใบใดก็ได้ในแม่น้ำ เพื่อเปิดอ่านป้ายชื่อและคำขอพรของกระทงใบนั้น</li>
+          <li>🎥 <strong>ตามติดกระทงของฉัน:</strong> โหมดกล้องลอยตามกระทงของคุณอย่างใกล้ชิด</li>
+          <li>🎵 <strong>ระบบเสียงคู่:</strong> แยกปุ่มเปิด-ปิดเสียงดนตรีไทยบรรเลง และเสียงบรรยากาศงานวัดริมแม่น้ำ</li>
+        </ul>
+      </div>
+      <div class="modal-footer">
+        <button id="btn-got-info" class="btn-primary">เริ่มเพลิดเพลินกับงานวัด</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="toast-msg" class="toast-notification"></div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
